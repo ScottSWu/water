@@ -326,43 +326,80 @@ void Central2D<Physics, Limiter>::limited_derivs()
 template <class Physics, class Limiter>
 void Central2D<Physics, Limiter>::compute_step(int io, real dt)
 {
+    #pragma omp parallel
+    {
     real dtcdx2 = 0.5 * dt / dx;
     real dtcdy2 = 0.5 * dt / dy;
-
+	real grav =9.8;
     // Predictor (flux values of f and g at half step)
+    #pragma omp for
     for (int iy = 1; iy < ny_all-1; ++iy)
         for (int ix = 1; ix < nx_all-1; ++ix) {
             vec uh = u(ix,iy);
-            for (int m = 0; m < uh.size(); ++m) {
-                uh[m] -= dtcdx2 * fx(ix,iy)[m];
-                uh[m] -= dtcdy2 * gy(ix,iy)[m];
-            }
-            Physics::flux(f(ix,iy), g(ix,iy), uh);
+            uh[0] -= dtcdx2 * fx(ix,iy)[0];
+            uh[0] -= dtcdy2 * gy(ix,iy)[0];
+            uh[1] -= dtcdx2 * fx(ix,iy)[1];
+            uh[1] -= dtcdy2 * gy(ix,iy)[1];
+            uh[2] -= dtcdx2 * fx(ix,iy)[2];
+            uh[2] -= dtcdy2 * gy(ix,iy)[2];
+	    real h = uh[0], hu = uh[1], hv = uh[2];
+            f(ix,iy)[0] = hu;
+            f(ix,iy)[1] = hu*hu/h + grav *(0.5)*h*h;
+            f(ix,iy)[2] = hu*hv/h;
+
+            g(ix,iy)[0] = hv;
+            g(ix,iy)[1] = hu*hv/h;
+            g(ix,iy)[2] = hv*hv/h + grav *(0.5)*h*h;
         }
 
     // Corrector (finish the step)
+    #pragma omp for
     for (int iy = nghost-io; iy < ny+nghost-io; ++iy)
         for (int ix = nghost-io; ix < nx+nghost-io; ++ix) {
-            for (int m = 0; m < v(ix,iy).size(); ++m) {
-                v(ix,iy)[m] =
-                    0.2500 * ( u(ix,  iy)[m] + u(ix+1,iy  )[m] +
-                               u(ix,iy+1)[m] + u(ix+1,iy+1)[m] ) -
-                    0.0625 * ( ux(ix+1,iy  )[m] - ux(ix,iy  )[m] +
-                               ux(ix+1,iy+1)[m] - ux(ix,iy+1)[m] +
-                               uy(ix,  iy+1)[m] - uy(ix,  iy)[m] +
-                               uy(ix+1,iy+1)[m] - uy(ix+1,iy)[m] ) -
-                    dtcdx2 * ( f(ix+1,iy  )[m] - f(ix,iy  )[m] +
-                               f(ix+1,iy+1)[m] - f(ix,iy+1)[m] ) -
-                    dtcdy2 * ( g(ix,  iy+1)[m] - g(ix,  iy)[m] +
-                               g(ix+1,iy+1)[m] - g(ix+1,iy)[m] );
-            }
-        }
+            v(ix,iy)[0] =
+                0.2500 * ( u(ix,  iy)[0] + u(ix+1,iy  )[0] +
+                           u(ix,iy+1)[0] + u(ix+1,iy+1)[0] ) -
+                0.0625 * ( ux(ix+1,iy  )[0] - ux(ix,iy  )[0] +
+                           ux(ix+1,iy+1)[0] - ux(ix,iy+1)[0] +
+                           uy(ix,  iy+1)[0] - uy(ix,  iy)[0] +
+                           uy(ix+1,iy+1)[0] - uy(ix+1,iy)[0] ) -
+                dtcdx2 * ( f(ix+1,iy  )[0] - f(ix,iy  )[0] +
+                           f(ix+1,iy+1)[0] - f(ix,iy+1)[0] ) -
+                dtcdy2 * ( g(ix,  iy+1)[0] - g(ix,  iy)[0] +
+                           g(ix+1,iy+1)[0] - g(ix+1,iy)[0] );
+        
+            v(ix,iy)[1] =
+                0.2500 * ( u(ix,  iy)[1] + u(ix+1,iy  )[1] +
+                           u(ix,iy+1)[1] + u(ix+1,iy+1)[1] ) -
+                0.0625 * ( ux(ix+1,iy  )[1] - ux(ix,iy  )[1] +
+                           ux(ix+1,iy+1)[1] - ux(ix,iy+1)[1] +
+                           uy(ix,  iy+1)[1] - uy(ix,  iy)[1] +
+                           uy(ix+1,iy+1)[1] - uy(ix+1,iy)[1] ) -
+                dtcdx2 * ( f(ix+1,iy  )[1] - f(ix,iy  )[1] +
+                           f(ix+1,iy+1)[1] - f(ix,iy+1)[1] ) -
+                dtcdy2 * ( g(ix,  iy+1)[1] - g(ix,  iy)[1] +
+                           g(ix+1,iy+1)[1] - g(ix+1,iy)[1] );
 
+            v(ix,iy)[2] =
+                0.2500 * ( u(ix,  iy)[2] + u(ix+1,iy  )[2] +
+                           u(ix,iy+1)[2] + u(ix+1,iy+1)[2] ) -
+                0.0625 * ( ux(ix+1,iy  )[2] - ux(ix,iy  )[2] +
+                           ux(ix+1,iy+1)[2] - ux(ix,iy+1)[2] +
+                           uy(ix,  iy+1)[2] - uy(ix,  iy)[2] +
+                           uy(ix+1,iy+1)[2] - uy(ix+1,iy)[2] ) -
+                dtcdx2 * ( f(ix+1,iy  )[2] - f(ix,iy  )[2] +
+                           f(ix+1,iy+1)[2] - f(ix,iy+1)[2] ) -
+                dtcdy2 * ( g(ix,  iy+1)[2] - g(ix,  iy)[2] +
+                           g(ix+1,iy+1)[2] - g(ix+1,iy)[2] );
+        }
     // Copy from v storage back to main grid
+    #pragma omp for
     for (int j = nghost; j < ny+nghost; ++j){
         for (int i = nghost; i < nx+nghost; ++i){
             u(i,j) = v(i-io,j-io);
         }
+    }
+    ///ending pragma parallel portion
     }
 }
 
