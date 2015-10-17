@@ -91,10 +91,10 @@ int main(int argc, char** argv)
 {
     std::string fname = "waves.out";
     std::string ic = "dam_break";
-    int    nx = 200;
     double width = 2.0;
     double ftime = 0.01;
     int    frames = 50;
+    int nx = 200;
     
     int c;
     extern char* optarg;
@@ -138,9 +138,9 @@ int main(int argc, char** argv)
         fprintf(stderr, "Unknown initial conditions\n");
     }
     
-    Sim sim(width,width, nx,nx);
+    Sim sim(width,width, NX,NX);
     SimViz<Sim> viz(fname.c_str(), sim);
-    sim.init(icfun);
+    sim.init();
     sim.solution_check();
     viz.write_frame();
     for (int i = 0; i < frames; ++i) {
