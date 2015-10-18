@@ -44,12 +44,12 @@ public:
     int ysize() const { return ny; }
     
     // Read / write elements of simulation state
-    vec&       operator()(int i, int j) {
-        return u_[offset(i+nghost,j+nghost)];
+    real&       operator()(int i, int j) {
+        return u1_[offset(i,j)];
     }
     
-    const vec& operator()(int i, int j) const {
-        return u_[offset(i+nghost,j+nghost)];
+    const real& operator()(int i, int j) const {
+        return u1_[offset(i,j)];
     }
     
 private:
@@ -91,30 +91,32 @@ private:
     real v2_[NX_ALL*NX_ALL];
     real v3_[NX_ALL*NX_ALL];
 
-    real u1(int ix, int iy) { return u1[offset(ix,iy)]; }            // Solution values
-    real u2(int ix, int iy) { return u2[offset(ix,iy)]; }            
-    real u3(int ix, int iy) { return u3[offset(ix,iy)]; } 
-    real f1(int ix, int iy) { return f1[offset(ix,iy)]; }            // Fluxes in x
-    real f2(int ix, int iy) { return f2[offset(ix,iy)]; }
-    real f3(int ix, int iy) { return f3[offset(ix,iy)]; } 
-    real g1(int ix, int iy) { return g1[offset(ix,iy)]; }            // Fluxes in y
-    real g2(int ix, int iy) { return g2[offset(ix,iy)]; }
-    real g3(int ix, int iy) { return g3[offset(ix,iy)]; }
-    real ux1(int ix, int iy) { return ux1[offset(ix,iy)]; }           // x differences of u
-    real ux2(int ix, int iy) { return ux2[offset(ix,iy)]; }
-    real ux3(int ix, int iy) { return ux3[offset(ix,iy)]; }
-    real uy1(int ix, int iy) { return uy1[offset(ix,iy)]; }           // y differences of u
-    real uy2(int ix, int iy) { return uy2[offset(ix,iy)]; }
-    real uy3(int ix, int iy) { return uy3[offset(ix,iy)]; }
-    real fx1(int ix, int iy) { return fx1[offset(ix,iy)]; }           // x differences of f
-    real fx2(int ix, int iy) { return fx2[offset(ix,iy)]; }
-    real fx3(int ix, int iy) { return fx3[offset(ix,iy)]; }
-    real gy1(int ix, int iy) { return gy1[offset(ix,iy)]; }           // y differences of g
-    real gy2(int ix, int iy) { return gy2[offset(ix,iy)]; }
-    real gy3(int ix, int iy) { return gy3[offset(ix,iy)]; }
-    real v1(int ix, int iy) {return v1[offset(ix,iy)]; }            // Solution values at next step
-    real v2(int ix, int iy) {return v2[offset(ix,iy)]; }
-    real v3(int ix, int iy) {return v3[offset(ix,iy)]; }
+    int offset(int ix, int iy) const { return iy*nx_all+ix; }
+
+    real& u1(int ix, int iy) { return u1_[offset(ix,iy)]; }            // Solution values
+    real& u2(int ix, int iy) { return u2_[offset(ix,iy)]; }            
+    real& u3(int ix, int iy) { return u3_[offset(ix,iy)]; } 
+    real& f1(int ix, int iy) { return f1_[offset(ix,iy)]; }            // Fluxes in x
+    real& f2(int ix, int iy) { return f2_[offset(ix,iy)]; }
+    real& f3(int ix, int iy) { return f3_[offset(ix,iy)]; } 
+    real& g1(int ix, int iy) { return g1_[offset(ix,iy)]; }            // Fluxes in y
+    real& g2(int ix, int iy) { return g2_[offset(ix,iy)]; }
+    real& g3(int ix, int iy) { return g3_[offset(ix,iy)]; }
+    real& ux1(int ix, int iy) { return ux1_[offset(ix,iy)]; }           // x differences of u
+    real& ux2(int ix, int iy) { return ux2_[offset(ix,iy)]; }
+    real& ux3(int ix, int iy) { return ux3_[offset(ix,iy)]; }
+    real& uy1(int ix, int iy) { return uy1_[offset(ix,iy)]; }           // y differences of u
+    real& uy2(int ix, int iy) { return uy2_[offset(ix,iy)]; }
+    real& uy3(int ix, int iy) { return uy3_[offset(ix,iy)]; }
+    real& fx1(int ix, int iy) { return fx1_[offset(ix,iy)]; }           // x differences of f
+    real& fx2(int ix, int iy) { return fx2_[offset(ix,iy)]; }
+    real& fx3(int ix, int iy) { return fx3_[offset(ix,iy)]; }
+    real& gy1(int ix, int iy) { return gy1_[offset(ix,iy)]; }           // y differences of g
+    real& gy2(int ix, int iy) { return gy2_[offset(ix,iy)]; }
+    real& gy3(int ix, int iy) { return gy3_[offset(ix,iy)]; }
+    real& v1(int ix, int iy) {return v1_[offset(ix,iy)]; }            // Solution values at next step
+    real& v2(int ix, int iy) {return v2_[offset(ix,iy)]; }
+    real& v3(int ix, int iy) {return v3_[offset(ix,iy)]; }
 
     // Wrapped accessor (periodic BC)
     int ioffset(int ix, int iy) {
@@ -122,9 +124,9 @@ private:
                        (iy+ny-nghost) % ny + nghost );
     }
 
-    real uwrap1(int ix, int iy)  { return u1[ioffset(ix,iy)]; }
-    real uwrap2(int ix, int iy)  { return u2[ioffset(ix,iy)]; }
-    real uwrap3(int ix, int iy)  { return u3[ioffset(ix,iy)]; }
+    real& uwrap1(int ix, int iy)  { return u1_[ioffset(ix,iy)]; }
+    real& uwrap2(int ix, int iy)  { return u2_[ioffset(ix,iy)]; }
+    real& uwrap3(int ix, int iy)  { return u3_[ioffset(ix,iy)]; }
 
 
     // Stages of the main algorithm
@@ -307,16 +309,16 @@ void Central2D<Physics, Limiter>::limited_derivs()
 template <class Physics, class Limiter>
 void Central2D<Physics, Limiter>::compute_step(int io, real dt)
 {
-    #pragma omp parallel
+    //#pragma omp parallel
     {
     real dtcdx2 = 0.5 * dt / dx;
     real dtcdy2 = 0.5 * dt / dy;
     real grav =9.8;
     // Predictor (flux values of f and g at half step)
-    #pragma omp for
+    //#pragma omp for
     for (int iy = 1; iy < ny_all-1; ++iy)
         for (int ix = 1; ix < nx_all-1; ++ix) {
-            h = u1(ix,iy); hu = u2(ix,iy); hv = u3(ix,iy)
+            real h = u1(ix,iy); real hu = u2(ix,iy); real hv = u3(ix,iy);
             h -= dtcdx2 * fx1(ix,iy);
             h -= dtcdy2 * gy1(ix,iy);
             hu -= dtcdx2 * fx2(ix,iy);
@@ -333,7 +335,7 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
         }
 
     // Corrector (finish the step)
-    #pragma omp for
+    //#pragma omp for
     for (int iy = nghost-io; iy < ny+nghost-io; ++iy)
         for (int ix = nghost-io; ix < nx+nghost-io; ++ix) {
             v1(ix,iy) =
@@ -343,10 +345,10 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
                            ux1(ix+1,iy+1) - ux1(ix,iy+1) +
                            uy1(ix,  iy+1) - uy1(ix,  iy) +
                            uy1(ix+1,iy+1) - uy1(ix+1,iy) ) -
-                dtcdx2 * ( f1(ix+1,iy  ) - f1(ix,iy  )1 +
-                           f1(ix+1,iy+1) - f1(ix,iy+1)1 ) -
-                dtcdy2 * ( g1(ix,  iy+1) - g1(ix,  iy)1 +
-                           g1(ix+1,iy+1) - g1(ix+1,iy)1 );
+                dtcdx2 * ( f1(ix+1,iy  ) - f1(ix,iy  ) +
+                           f1(ix+1,iy+1) - f1(ix,iy+1) ) -
+                dtcdy2 * ( g1(ix,  iy+1) - g1(ix,  iy) +
+                           g1(ix+1,iy+1) - g1(ix+1,iy) );
         
             v2(ix,iy) =
                 0.2500 * ( u2(ix,  iy) + u2(ix+1,iy  ) +
@@ -373,7 +375,7 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
                            g3(ix+1,iy+1) - g3(ix+1,iy) );
         }
     // Copy from v storage back to main grid
-    #pragma omp for
+    //#pragma omp for
     for (int j = nghost; j < ny+nghost; ++j){
         for (int i = nghost; i < nx+nghost; ++i){
             u1(i,j) = v1(i-io,j-io);
@@ -449,8 +451,8 @@ void Central2D<Physics, Limiter>::solution_check()
             
             real h = u1(i,j);
             h_sum += h;
-            hu_sum += uij[1];
-            hv_sum += uij[2];
+            hu_sum += u2(i,j);
+            hv_sum += u3(i,j);
             hmax = max(h, hmax);
             hmin = min(h, hmin);
             assert( h > 0) ;
