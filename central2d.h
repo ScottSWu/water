@@ -309,13 +309,13 @@ void Central2D<Physics, Limiter>::limited_derivs()
 template <class Physics, class Limiter>
 void Central2D<Physics, Limiter>::compute_step(int io, real dt)
 {
-    //#pragma omp parallel
+    #pragma omp parallel
     {
     real dtcdx2 = 0.5 * dt / dx;
     real dtcdy2 = 0.5 * dt / dy;
     real grav =9.8;
     // Predictor (flux values of f and g at half step)
-    //#pragma omp for
+    #pragma omp for
     for (int iy = 1; iy < ny_all-1; ++iy)
         for (int ix = 1; ix < nx_all-1; ++ix) {
             real h = u1(ix,iy); real hu = u2(ix,iy); real hv = u3(ix,iy);
@@ -335,7 +335,7 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
         }
 
     // Corrector (finish the step)
-    //#pragma omp for
+    #pragma omp for
     for (int iy = nghost-io; iy < ny+nghost-io; ++iy)
         for (int ix = nghost-io; ix < nx+nghost-io; ++ix) {
             v1(ix,iy) =
@@ -375,7 +375,7 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
                            g3(ix+1,iy+1) - g3(ix+1,iy) );
         }
     // Copy from v storage back to main grid
-    //#pragma omp for
+    #pragma omp for
     for (int j = nghost; j < ny+nghost; ++j){
         for (int i = nghost; i < nx+nghost; ++i){
             u1(i,j) = v1(i-io,j-io);

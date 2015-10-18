@@ -137,6 +137,7 @@ int main(int argc, char** argv)
     } else {
         fprintf(stderr, "Unknown initial conditions\n");
     }
+    double t0 = omp_get_wtime();
     
     Sim sim(width,width, NX,NX);
     SimViz<Sim> viz(fname.c_str(), sim);
@@ -145,14 +146,15 @@ int main(int argc, char** argv)
     viz.write_frame();
     for (int i = 0; i < frames; ++i) {
 #ifdef _OPENMP
-        double t0 = omp_get_wtime();
+        
         sim.run(ftime);
-        double t1 = omp_get_wtime();
-        printf("Time: %e\n", t1-t0);
+
 #else
         sim.run(ftime);
 #endif
         sim.solution_check();
         viz.write_frame();
     }
+    double t1 = omp_get_wtime();
+    printf("Time: %e\n", t1-t0);
 }
