@@ -43,40 +43,7 @@ typedef Central2D< Shallow2D, MinMod<Shallow2D::real> > Sim;
  */
 
 // Circular dam break problem
-void dam_break(Sim::vec& u, double x, double y)
-{
-    x -= 1;
-    y -= 1;
-    u[0] = 1.0 + 0.5*(x*x + y*y < 0.25+1e-5);
-    u[1] = 0;
-    u[2] = 0;
-}
 
-// Still pond (ideally, nothing should move here!)
-void pond(Sim::vec& u, double x, double y)
-{
-    u[0] = 1.0;
-    u[1] = 0;
-    u[2] = 0;
-}
-
-// River (ideally, the solver shouldn't do much with this, either)
-void river(Sim::vec& u, double x, double y)
-{
-    u[0] = 1.0;
-    u[1] = 1.0;
-    u[2] = 0;
-}
-
-
-// Wave on a river -- develops a shock in finite time!
-void wave(Sim::vec& u, double x, double y)
-{
-    using namespace std;
-    u[0] = 1.0 + 0.2 * sin(M_PI*x);
-    u[1] = 1.0;
-    u[2] = 0;
-}
 
 
 /**
@@ -89,14 +56,14 @@ void wave(Sim::vec& u, double x, double y)
 
 int main(int argc, char** argv)
 {
-    std::string fname = "waves.out";
-    std::string ic = "dam_break";
+
     double width = 2.0;
     double ftime = 0.01;
     int    frames = 50;
     int nx = 200;
     
     int c;
+    /*
     extern char* optarg;
     while ((c = getopt(argc, argv, "hi:o:n:w:F:f:")) != -1) {
         switch (c) {
@@ -137,10 +104,11 @@ int main(int argc, char** argv)
     } else {
         fprintf(stderr, "Unknown initial conditions\n");
     }
+    */
     double t0 = omp_get_wtime();
     
     Sim sim(width,width, NX,NX);
-    SimViz<Sim> viz(fname.c_str(), sim);
+    SimViz<Sim> viz("dam_break", sim);
     sim.init();
     sim.solution_check();
     viz.write_frame();

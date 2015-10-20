@@ -1,5 +1,14 @@
+#include <omp.h>
+
+#define ALLOC alloc_if(1)
+#define FREE free_if(1)
+#define RETAIN free_if(0)
+#define REUSE alloc_if(0)
+
+
 #ifndef CENTRAL2D_H
 #define CENTRAL2D_H
+
 
 #include <cstdio>
 #include <cmath>
@@ -34,7 +43,7 @@ public:
     void run(real tfinal);
 
     // Call f(Uxy, x, y) at each cell center to set initial conditions
-    void init();
+    inline __declspec(target (mic)) void init();
 
     // Diagnostics
     void solution_check();
@@ -130,10 +139,10 @@ private:
 
 
     // Stages of the main algorithm
-    void apply_periodic();
-    void compute_fg_speeds(real& cx, real& cy);
-    void limited_derivs();
-    void compute_step(int io, real dt);
+    inline __declspec(target (mic)) void apply_periodic();
+    inline __declspec(target (mic)) void compute_fg_speeds(real& cx, real& cy);
+    inline __declspec(target (mic)) void limited_derivs();
+    inline __declspec(target (mic)) void compute_step(int io, real dt);
 
 };
 
@@ -153,6 +162,7 @@ template <class Physics, class Limiter>
 void Central2D<Physics, Limiter>::init()
 {
     //default is dam break initial condition to generate the final image. 
+    #pragma omp parallel for 
     for (int iy = 0; iy < ny; ++iy)
         for (int ix = 0; ix < nx; ++ix){
             real x = (ix+0.5)*dx;
@@ -183,9 +193,10 @@ void Central2D<Physics, Limiter>::init()
  */
 
 template <class Physics, class Limiter>
-void Central2D<Physics, Limiter>::apply_periodic()
+inline __declspec(target (mic)) void Central2D<Physics, Limiter>::apply_periodic()
 {
     // Copy data between right and left boundaries
+    #pragma omp parallel for
     for (int iy = 0; iy < ny_all; ++iy)
         for (int ix = 0; ix < nghost; ++ix) {
             u1(ix,          iy) = uwrap1(ix,          iy);
@@ -198,6 +209,7 @@ void Central2D<Physics, Limiter>::apply_periodic()
         }
 
     // Copy data between top and bottom boundaries
+    #pragma omp parallel for
     for (int ix = 0; ix < nx_all; ++ix)
         for (int iy = 0; iy < nghost; ++iy) {
             u1(ix,          iy) = uwrap1(ix,          iy);
@@ -221,12 +233,13 @@ void Central2D<Physics, Limiter>::apply_periodic()
  */
 
 template <class Physics, class Limiter>
-void Central2D<Physics, Limiter>::compute_fg_speeds(real& cx_, real& cy_)
+inline __declspec(target (mic)) void Central2D<Physics, Limiter>::compute_fg_speeds(real& cx_, real& cy_)
 {
     real grav = 9.8;
     using namespace std;
     real cx = 1.0e-15;
     real cy = 1.0e-15;
+    #pragma omp parallel for
     for (int iy = 0; iy < ny_all; ++iy)
         for (int ix = 0; ix < nx_all; ++ix) {
             real cell_cx, cell_cy;
@@ -260,8 +273,9 @@ void Central2D<Physics, Limiter>::compute_fg_speeds(real& cx_, real& cy_)
  */
 
 template <class Physics, class Limiter>
-void Central2D<Physics, Limiter>::limited_derivs()
+inline __declspec(target (mic)) void Central2D<Physics, Limiter>::limited_derivs()
 {
+    #pragma omp parallel for 
     for (int iy = 1; iy < ny_all-1; ++iy)
         for (int ix = 1; ix < nx_all-1; ++ix) {
 
@@ -307,7 +321,7 @@ void Central2D<Physics, Limiter>::limited_derivs()
  */
 
 template <class Physics, class Limiter>
-void Central2D<Physics, Limiter>::compute_step(int io, real dt)
+inline __declspec(target (mic)) void Central2D<Physics, Limiter>::compute_step(int io, real dt)
 {
     #pragma omp parallel
     {
@@ -383,6 +397,7 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
             u3(i,j) = v3(i-io,j-io);
         }
     }
+
     ///ending pragma parallel portion
     }
 }
@@ -405,6 +420,8 @@ void Central2D<Physics, Limiter>::compute_step(int io, real dt)
 template <class Physics, class Limiter>
 void Central2D<Physics, Limiter>::run(real tfinal)
 {
+    #pragma offload target(mic) in(u1_,u2_,u3_,f1_,f2_,f3_,g1_,g2_,g3_,ux1_,ux2_,ux3_,uy1_,uy2_,uy3_,fx1_,fx2_,fx3_,gy1_,gy2_,gy3_,v3_,v1_,v2_: length(NX_ALL*NX_ALL) REUSE RETAIN)
+    {
     bool done = false;
     real t = 0;
     while (!done) {
@@ -424,6 +441,8 @@ void Central2D<Physics, Limiter>::run(real tfinal)
             compute_step(io, dt);
             t += dt;
         }
+    }
+    
     }
 }
 
