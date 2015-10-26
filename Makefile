@@ -80,5 +80,6 @@ clean:
 	rm -f shallow
 	rm -f dam_break.* wave.*
 	rm -f shallow.md shallow.pdf
-	rm -f shallow.o*
+	rm -f parallel.o*
+	rm -f core.*
 

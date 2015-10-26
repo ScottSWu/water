@@ -1,6 +1,3 @@
-#ifndef MINMOD_H
-#define MINMOD_H
-
 #include <cmath>
 
 //ldoc on
@@ -57,26 +54,20 @@
  * will improve performance or accuracy.
  */
 
-template <class real>
-struct MinMod {
-    static constexpr real theta = 2.0;
+    float theta = 2.0;
 
     // Branch-free computation of minmod of two numbers
-    static real xmin(real a, real b) {
+    float xmin(float a, float b) {
         using namespace std;
-        return ((copysign((real) 0.5, a) +
-                 copysign((real) 0.5, b)) *
+        return ((copysign((float) 0.5, a) +
+                 copysign((float) 0.5, b)) *
                 min( abs(a), abs(b) ));
     }
 
     // Limited combined slope estimate
-    static real limdiff(real um, real u0, real up) {
-        real du1 = u0-um;         // Difference to left
-        real du2 = up-u0;         // Difference to right
-        real duc = 0.5*(du1+du2); // Centered difference
+    float limdiff(float um, float u0, float up) {
+        float du1 = u0-um;         // Difference to left
+        float du2 = up-u0;         // Difference to right
+        float duc = 0.5*(du1+du2); // Centered difference
         return xmin( theta*xmin(du1, du2), duc );
     }
-};
-
-//ldoc off
-#endif /* MINMOD_H */

@@ -1,6 +1,5 @@
 #include "central2d.h"
 #include "shallow2d.h"
-#include "minmod.h"
 #include "meshio.h"
 
 #ifdef _OPENMP
@@ -30,7 +29,7 @@
  * limiter:
  */
 
-typedef Central2D< Shallow2D, MinMod<Shallow2D::real> > Sim;
+typedef Central2D Sim;
 
 /**
  * ## Initial states
@@ -39,7 +38,7 @@ typedef Central2D< Shallow2D, MinMod<Shallow2D::real> > Sim;
  * interesting problem is the wave problem (a wave on a constant
  * flow, starting off smooth and developing a shock in finite time).
  * The pond and river examples should do nothing interesting at all
- * if the numerical method is coded right.
+ * if the numerical method is coded right
  */
 
 // Circular dam break problem
